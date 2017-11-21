@@ -155,8 +155,8 @@ class CloudPoint:
         return task
 
 def usage():
-    print "Creates a CloudPoint snapshot"
-    print "Usage:", sys.argv[0], "snapshot <asset-name> <snapshot-name>"
+    print("Creates a CloudPoint snapshot")
+    print("Usage:", sys.argv[0], "snapshot <asset-name> <snapshot-name>")
 
 def cloudpoint_snapshot(asset_name, snapshot_name):
     hostname = "cloudpoint"
@@ -166,7 +166,7 @@ def cloudpoint_snapshot(asset_name, snapshot_name):
     id = c.asset_id(asset_name)
     if id is None:
         raise Exception("AssetNotFound", "Asset not found")
-    r = c.create_snapshot(id, "clone", snapshot_name, "NBU-Snapshot")
+    r = c.create_snapshot(id, "clone", snapshot_name, "CloudPoint snapshot")
     return r
 
 
@@ -179,7 +179,7 @@ if __name__ == "__main__":
     except:
         usage()
         sys.exit()
-    print "Creating snapshot", snapshot_name, "for asset", asset_name
+    print("Creating snapshot", snapshot_name, "for asset", asset_name)
     r = cloudpoint_snapshot(asset_name, snapshot_name)
-    print "Task: ", r["name"]
-    print "Status:", r["status"]
+    print("Task: ", r["name"])
+    print("Status:", r["status"])
