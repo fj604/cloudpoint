@@ -4,10 +4,11 @@ import sys
 import requests
 import json
 import time
+import urllib3
 
 
 class CloudPoint:
-    def __init__(self, hostname, username, password):
+    def __init__(self, hostname, username, password, disable_warnings=True):
         self.hostname = hostname
         self.username = username
         self.password = password
@@ -15,6 +16,8 @@ class CloudPoint:
         self.cookies = None
         self.headers = {}
         self.headers["Content-Type"] = "application/json"
+        if disable_warnings:
+            urllib3.disable_warnings()
         return
 
     def request(self, method, url, json=None, params=None):
