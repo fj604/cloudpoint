@@ -40,7 +40,6 @@ class CloudPoint:
         self.authenticate()
         url = "/flexsnap/api/v1/assets/"
         r = self.request("GET", url)
-        self.assets = r
         return r
 
     def get_asset(self, asset_id):
@@ -101,6 +100,30 @@ class CloudPoint:
         r = self.request("PUT", url, payload)
         return r
 
+    def list_agents(self):
+        self.authenticate()
+        url = "/flexsnap/api/v1/agents"
+        r = self.request("GET", url)
+        return r
+
+    def get_agent(self, agent_id):
+        self.authenticate()
+        url = "/flexsnap/api/v1/agents/{0}".format(agent_id)
+        r = self.request("GET", url)
+        return r
+
+    def list_plugins(self, agent_id):
+        self.authenticate()
+        url = "/flexsnap/api/v1/agents/{0}/plugins/".format(agent_id)
+        r = self.request("GET", url)
+        return r
+
+    def get_plugin(self, agent_id, plugin_name):
+        self.authenticate()
+        url = "/flexsnap/api/v1/agents/{0}/plugins/{1}".format(agent_id, plugin_name)
+        r = self.request("GET", url)
+        return r
+
     def list_tasks(self, status=None, run_since=None, task_type=None, limit=None, start_after=None):
         self.authenticate()
         params = {}
@@ -141,6 +164,27 @@ class CloudPoint:
         r = self.request("DELETE", url, params=params)
         return r
 
+    def agent_summary(self):
+        self.authenticate()
+        url = "/flexsnap/api/v1/agents/summary"
+        r = self.request("GET", url)
+        return r
+    
+    def plugin_summary(self):
+        self.authenticate()
+        url = "/flexsnap/api/v1/plugins/summary"
+        r = self.request("GET", url)
+        return r
+    
+    def asset_summary(self):
+        self.authenticate()
+        url = "/flexsnap/api/v1/assets/summary"
+        r = self.request("GET", url)
+        return r
+    
+
+# Helper methods
+
     def asset_id(self, name):
         assets = self.list_assets()
         for asset in assets:
@@ -156,6 +200,8 @@ class CloudPoint:
                 break
             time.sleep(check_every_seconds)
         return task
+
+# Command line functions to test basic functionality
 
 def usage():
     print("Creates a CloudPoint snapshot")
