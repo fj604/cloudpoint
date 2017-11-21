@@ -149,7 +149,7 @@ class CloudPoint:
         end_wait = time.clock() + timeout
         while True:
             task = self.get_task(task_id)
-            if task["status"] != "running" or time.clock() > timeout:
+            if task["status"] != "running" or time.clock() > end_wait:
                 break
             time.sleep(check_every_seconds)
         return task
