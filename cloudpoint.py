@@ -8,7 +8,7 @@ import urllib3
 
 
 class CloudPoint:
-    def __init__(self, hostname, username, password, disable_warnings=True):
+    def __init__(self, hostname, username, password, version=2, disable_warnings=True):
         self.hostname = hostname
         self.username = username
         self.password = password
@@ -17,63 +17,66 @@ class CloudPoint:
         self.headers = {}
         self.headers["Content-Type"] = "application/json"
         if disable_warnings:
-            urllib3.disable_warnings()
+            urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
         return
 
     def request(self, method, url, json=None, params=None):
         url = self.baseurl + url
+        print(method, url)
         r = requests.request(method, url, json=json,
                              params=params, verify=False,
                              cookies=self.cookies,
                              headers=self.headers)
         self.cookies = r.cookies
+        print(r)
         return r.json()
 
     def authenticate(self):
         payload = {}
-        payload["username"] = self.username
+        payload["email"] = self.username
         payload["password"] = self.password
-        url = "/api/rest/authenticate"
+        url = "/cloudpoint/api/v2/idm/login"
         r = self.request("POST", url, payload)
-        self.token = r["token"]
+        print(r)
+        self.token = r["accessToken"]
         self.headers["Authorization"] = "Bearer " + self.token
         return r
 
     def list_assets(self):
         self.authenticate()
-        url = "/flexsnap/api/v1/assets/"
+        url = "/cloudpoint/api/v2/assets"
         r = self.request("GET", url)
         return r
 
     def get_asset(self, asset_id):
         self.authenticate()
-        url = "/flexsnap/api/v1/assets/{0}".format(asset_id)
+        url = "/cloudpoint/api/v2/assets/{0}".format(asset_id)
         r = self.request("GET", url)
         return r
 
     def list_snapshots(self, asset_id):
         self.authenticate()
-        url = "/flexsnap/api/v1/assets/{0}/snapshots/".format(asset_id)
+        url = "/cloudpoint/api/v2/assets/{0}/snapshots/".format(asset_id)
         r = self.request("GET", url)
         return r
 
     def get_snapshot(self, asset_id, snapshot_id):
         self.authenticate()
-        url = "/flexsnap/api/v1/assets/{0}/snapshots/{1}"\
+        url = "/cloudpoint/api/v2/assets/{0}/snapshots/{1}"\
               .format(asset_id, snapshot_id)
         r = self.request("GET", url)
         return r
 
     def list_restore_targets(self, asset_id, snapshot_id):
         self.authenticate()
-        url = "/flexsnap/api/v1/assets/{0}/snapshots/{1}/targets"\
+        url = "/cloudpoint/api/v2/assets/{0}/snapshots/{1}/targets"\
               .format(asset_id, snapshot_id)
         r = self.request("GET", url)
         return r
 
     def create_snapshot(self, asset_id, snapType, name, description=""):
         self.authenticate()
-        url = "/flexsnap/api/v1/assets/{0}/snapshots/"\
+        url = "/cloudpoint/api/v2/assets/{0}/snapshots/"\
               .format(asset_id)
         payload = {}
         payload["snapType"] = snapType
@@ -84,14 +87,14 @@ class CloudPoint:
 
     def delete_snapshot(self, asset_id, snapshot_id):
         self.authenticate()
-        url = "/flexsnap/api/v1/assets/{0}/snapshots/{1}"\
+        url = "/cloudpoint/api/v2/assets/{0}/snapshots/{1}"\
               .format(asset_id, snapshot_id)
         r = self.request("DELETE", url)
         return r
 
     def restore_snapshot(self, snapshot_id, dest=None):
         self.authenticate()
-        url = "/flexsnap/api/v1/assets/"
+        url = "/cloudpoint/api/v2/assets/"
         payload = {}
         payload["snapid"] = snapshot_id
         if dest is not None:
@@ -101,7 +104,7 @@ class CloudPoint:
 
     def restore_snapshot_overwrite_original_asset(self, snapshot_id, asset_id):
         self.authenticate()
-        url = "/flexsnap/api/v1/assets/{0}".format(asset_id)
+        url = "/cloudpoint/api/v2/assets/{0}".format(asset_id)
         payload = {}
         payload["snapid"] = snapshot_id
         r = self.request("PUT", url, payload)
@@ -109,25 +112,25 @@ class CloudPoint:
 
     def list_agents(self):
         self.authenticate()
-        url = "/flexsnap/api/v1/agents"
+        url = "/cloiudpoint/api/v2/agents"
         r = self.request("GET", url)
         return r
 
     def get_agent(self, agent_id):
         self.authenticate()
-        url = "/flexsnap/api/v1/agents/{0}".format(agent_id)
+        url = "/cloudpoint/api/v2/agents/{0}".format(agent_id)
         r = self.request("GET", url)
         return r
 
     def list_plugins(self, agent_id):
         self.authenticate()
-        url = "/flexsnap/api/v1/agents/{0}/plugins/".format(agent_id)
+        url = "/cloudpoint/api/v2/agents/{0}/plugins/".format(agent_id)
         r = self.request("GET", url)
         return r
 
     def get_plugin(self, agent_id, plugin_name):
         self.authenticate()
-        url = "/flexsnap/api/v1/agents/{0}/plugins/{1}"\
+        url = "/cloudpoint/api/v2/agents/{0}/plugins/{1}"\
               .format(agent_id, plugin_name)
         r = self.request("GET", url)
         return r
@@ -146,19 +149,19 @@ class CloudPoint:
             params["limit"] = limit
         if start_after is not None:
             params["start_after"] = start_after
-        url = "/flexsnap/api/v1/tasks/"
+        url = "/cloudpoint/api/v2/tasks/"
         r = self.request("GET", url, params=params)
         return r
 
     def get_task(self, task_id):
         self.authenticate()
-        url = "/flexsnap/api/v1/tasks/{0}".format(task_id)
+        url = "/cloudpoint/api/v2/tasks/{0}".format(task_id)
         r = self.request("GET", url)
         return r
 
     def delete_task(self, task_id):
         self.authenticate()
-        url = "/flexsnap/api/v1/tasks/{0}".format(task_id)
+        url = "/cloudpoint/api/v2/tasks/{0}".format(task_id)
         r = self.request("DELETE", url)
         return r
 
@@ -169,25 +172,25 @@ class CloudPoint:
             params["status"] = status
         if older_than is not None:
             params["olderThan"] = older_than
-        url = "/flexsnap/api/v1/tasks/"
+        url = "/cloudpoint/api/v2/tasks/"
         r = self.request("DELETE", url, params=params)
         return r
 
     def agent_summary(self):
         self.authenticate()
-        url = "/flexsnap/api/v1/agents/summary"
+        url = "/cloudpoint/api/v2/agents/summary"
         r = self.request("GET", url)
         return r
 
     def plugin_summary(self):
         self.authenticate()
-        url = "/flexsnap/api/v1/plugins/summary"
+        url = "/cloudpoint/api/v2/plugins/summary"
         r = self.request("GET", url)
         return r
 
     def asset_summary(self):
         self.authenticate()
-        url = "/flexsnap/api/v1/assets/summary"
+        url = "/cloudpoint/api/v2/assets/summary"
         r = self.request("GET", url)
         return r
 
@@ -196,8 +199,8 @@ class CloudPoint:
 
     def asset_id(self, name):
         assets = self.list_assets()
-        for asset in assets:
-            if "name" in asset and asset["name"] == name:
+        for asset in assets["items"]:
+            if "displayName" in asset and asset["displayName"] == name:
                 return asset["id"]
         return None
 
